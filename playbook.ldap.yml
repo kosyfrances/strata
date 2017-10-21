@@ -5,3 +5,4 @@
     - auth_ip: '192.168.34.10'
   roles:
     - apache
+    - php

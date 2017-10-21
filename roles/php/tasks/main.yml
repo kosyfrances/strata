@@ -1,0 +1,16 @@
+---
+- name: Install php
+  apt:
+    name: '{{ item }}'
+  with_items:
+    - php
+    - libapache2-mod-php
+    - php-mcrypt
+    - php-mysql
+
+- name: Edit dir.conf file
+  lineinfile:
+    path: '/etc/apache2/mods-enabled/dir.conf'
+    regexp: 'DirectoryIndex'
+    line: 'DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm'
+  notify: restart apache2
