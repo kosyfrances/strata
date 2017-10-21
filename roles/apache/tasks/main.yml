@@ -9,8 +9,4 @@
     path: '/etc/apache2/apache2.conf'
     regexp: 'ServerName'
     line: 'ServerName {{ auth_ip }}'
-
-- name: Restart apache2
-  service:
-    name: apache2
-    state: restarted
+  notify: restart apache2
