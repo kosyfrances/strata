@@ -8,7 +8,9 @@
 Vagrant.configure("2") do |config|
 
   config.vm.box = "ubuntu/xenial64"
+  config.vm.provision "shell", path: "provision.sh"
 
+  # ldap server
   config.vm.define "auth" do |auth|
     auth.vm.hostname = "auth"
     auth.vm.network "private_network", ip: "192.168.34.10"
