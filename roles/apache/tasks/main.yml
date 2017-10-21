@@ -1,0 +1,16 @@
+---
+- name: Install apache2
+  apt:
+    name: apache2
+    update_cache: yes
+
+- name: Add ServerName directive
+  lineinfile:
+    path: '/etc/apache2/apache2.conf'
+    regexp: 'ServerName'
+    line: 'ServerName {{ auth_ip }}'
+
+- name: Restart apache2
+  service:
+    name: apache2
+    state: restarted
