@@ -13,12 +13,48 @@
     value:  '{{ item.value }}'
     vtype: '{{ item.vtype }}'
   with_items:
-    - { question: 'slapd/internal/adminpw', value: '{{ ldap_admin_pass }}', vtype: 'password' }
-    - { question: 'slapd/internal/generated_adminpw', value: '{{ ldap_admin_pass }}', vtype: 'password' }
-    - { question: 'slapd/domain', value: 'strata.com', vtype: 'string' }
-    - { question: 'shared/organization', value: 'strata', vtype: 'string' }
+    - question: 'slapd/internal/adminpw'
+      value: '{{ ldap_admin_pass }}'
+      vtype: 'password'
+    - question: 'slapd/internal/generated_adminpw'
+      value: '{{ ldap_admin_pass }}'
+      vtype: 'password'
+    - question: 'slapd/domain'
+      value: '{{ domain_name }}'
+      vtype: 'string'
+    - question: 'shared/organization'
+      value: '{{ organization_name }}'
+      vtype: 'string'
   no_log: True
 
 # Using ufw module gives me "ERROR: Could not find a profile matching 'ldap'\n"
 - name: Open up the LDAP port on firewall so external clients can connect
   command: ufw allow ldap
+
+- name: Install phpldapadmin
+  apt:
+    name: phpldapadmin
+
+- name: Set fact for phpldapadmin config file
+  set_fact:
+    phpldapadmin_config: '/etc/phpldapadmin/config.php'
+
+# WIP errors
+- name: Configure phpldapadmin
+  lineinfile:
+    path: '{{ item.path }}'
+    regexp: '{{ item.regexp }}'
+    line: '{{ item.line }}'
+  with_items:
+    - path: '{{ phpldapadmin_config }}'
+      regexp: "$servers->setValue('server','name'"
+      line: "$servers->setValue('server','name','{{ organization_name|title }} LDAP');"
+    - path: '{{ phpldapadmin_config }}'
+      regexp: "$servers->setValue('server','base'"
+      line: "$servers->setValue('server','base', array('dc={{ organization_name }},dc=com'));"
+    - path: '{{ phpldapadmin_config }}'
+      regexp: "$servers->setValue('login','bind_id',"
+      line: "#$servers->setValue('login','bind_id','cn=admin,dc={{ organization_name }},dc=com');"
+    - path: '{{ phpldapadmin_config }}'
+      regexp: "// $config->custom->appearance['hide_template_warning']"
+      line: "$config->custom->appearance['hide_template_warning'] = true;"
