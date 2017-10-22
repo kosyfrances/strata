@@ -3,6 +3,9 @@
   become: yes
   vars:
     - auth_ip: '192.168.34.10'
+  vars_files:
+    - vars/secret_vars.yml
   roles:
     - apache
     - php
+    - ldap

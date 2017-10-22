@@ -1,0 +1,24 @@
+---
+- name: Install ldap
+  apt:
+    name: '{{ item }}'
+  with_items:
+    - slapd
+    - ldap-utils
+
+- name: Reconfigure slapd
+  debconf:
+    name: slapd
+    question: '{{ item.question }}'
+    value:  '{{ item.value }}'
+    vtype: '{{ item.vtype }}'
+  with_items:
+    - { question: 'slapd/internal/adminpw', value: '{{ ldap_admin_pass }}', vtype: 'password' }
+    - { question: 'slapd/internal/generated_adminpw', value: '{{ ldap_admin_pass }}', vtype: 'password' }
+    - { question: 'slapd/domain', value: 'strata.com', vtype: 'string' }
+    - { question: 'shared/organization', value: 'strata', vtype: 'string' }
+  no_log: True
+
+# Using ufw module gives me "ERROR: Could not find a profile matching 'ldap'\n"
+- name: Open up the LDAP port on firewall so external clients can connect
+  command: ufw allow ldap
