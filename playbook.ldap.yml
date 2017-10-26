@@ -5,8 +5,6 @@
     - auth_ip: '192.168.34.10'
     - domain_name: 'strata.com'
     - organization_name: 'strata'
-  vars_files:
-    - vars/secret_vars.yml
   roles:
     - apache
     - php
