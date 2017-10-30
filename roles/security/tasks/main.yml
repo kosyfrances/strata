@@ -1,0 +1,56 @@
+---
+- name: Create ssl directory
+  file:
+    path: /etc/apache2/ssl
+    state: directory
+  register: ssl_directory
+
+- name: Generate ssl private key
+  openssl_privatekey:
+    path: '{{ ssl_directory.path }}/apache.pem'
+  register: ssl_key
+
+- name: Generate ssl Certificate Signing Request (CSR)
+  openssl_csr:
+    path: '{{ ssl_directory.path }}/apache.csr'
+    privatekey_path: '{{ ssl_key.filename }}'
+    common_name: '{{ domain_name }}'
+  register: ssl_csr
+
+- name: Generate ssl certificate
+  openssl_certificate:
+    path: '{{ ssl_directory.path }}/apache.crt'
+    privatekey_path: '{{ ssl_key.filename }}'
+    csr_path: '{{ ssl_csr.filename }}'
+    provider: selfsigned
+  register: ssl_cert
+
+- name: Create password auth file to password protect our phpLDAPadmin location
+  htpasswd:
+    path: /etc/apache2/htpasswd
+    name: '{{ htpasswd_user }}'
+    password: '{{ htpasswd_pass }}'
+
+- name: Enable SSL module in Apache
+  apache2_module:
+    name: ssl
+
+- name: Modify the phpLDAPadmin apache configuration
+  lineinfile:
+    path: /etc/phpldapadmin/apache.conf
+    regexp: Alias
+    line: 'Alias {{ phpldapadmin_url }} /usr/share/phpldapadmin/htdocs'
+
+- name: Configure HTTP virtual host
+  template:
+    src: 000-default.conf.j2
+    dest: /etc/apache2/sites-enabled/000-default.conf
+
+- name: Enable the HTTPS Virtual Host File
+  command: a2ensite default-ssl.conf
+
+- name: Configure the HTTPS Virtual Host File
+  template:
+    src: default-ssl.conf.j2
+    dest: /etc/apache2/sites-enabled/default-ssl.conf
+  notify: restart apache2

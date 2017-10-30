@@ -15,6 +15,6 @@
     name: phpldapadmin
 
 - name: Configure phpldapadmin
-  template:
-    src: config.php.j2
-    dest: '/etc/phpldapadmin/config.php'
+  copy:
+    src: config.php
+    dest: /etc/phpldapadmin/config.php

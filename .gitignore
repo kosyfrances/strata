@@ -1,4 +1,3 @@
 .vagrant
 *log
 *.retry
-secret_vars.yml

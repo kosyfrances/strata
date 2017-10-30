@@ -1,12 +1,15 @@
 ---
 - name: Install apache2
   apt:
-    name: apache2
+    name: '{{ item }}'
     update_cache: yes
+  with_items:
+    - apache2
+    - apache2-utils
 
 - name: Add ServerName directive
   lineinfile:
-    path: '/etc/apache2/apache2.conf'
-    regexp: 'ServerName'
+    path: /etc/apache2/apache2.conf
+    regexp: ServerName
     line: 'ServerName {{ auth_ip }}'
   notify: restart apache2

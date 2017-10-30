@@ -4,8 +4,12 @@
   vars:
     - auth_ip: '192.168.34.10'
     - domain_name: 'strata.com'
-    - organization_name: 'strata'
+    - organization_name: strata
+    - htpasswd_user: ubuntu
+    - htpasswd_pass: ubuntu # For testing purposes only. Pls encrypt later on
+    - phpldapadmin_url: /ldap
   roles:
     - apache
     - php
     - ldap
+    - security
