@@ -1,0 +1,8 @@
+---
+- hosts: client
+  become: yes
+  vars:
+    - ldap_server_ip: '192.168.34.10'
+    - organization_name: strata
+  roles:
+    - ldap_client

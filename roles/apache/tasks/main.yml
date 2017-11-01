@@ -11,5 +11,5 @@
   lineinfile:
     path: /etc/apache2/apache2.conf
     regexp: ServerName
-    line: 'ServerName {{ auth_ip }}'
+    line: 'ServerName {{ ldap_server_ip }}'
   notify: restart apache2

@@ -2,7 +2,7 @@
 - hosts: auth
   become: yes
   vars:
-    - auth_ip: '192.168.34.10'
+    - ldap_server_ip: '192.168.34.10'
     - domain_name: 'strata.com'
     - organization_name: strata
     - htpasswd_user: ubuntu
@@ -11,5 +11,5 @@
   roles:
     - apache
     - php
-    - ldap
+    - ldap_server
     - security

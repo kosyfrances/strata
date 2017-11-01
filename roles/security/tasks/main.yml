@@ -1,4 +1,11 @@
 ---
+- name: Install requirements
+  pip:
+    name: '{{ item }}'
+  with_items:
+    - pyopenssl
+    - passlib
+
 - name: Create ssl directory
   file:
     path: /etc/apache2/ssl

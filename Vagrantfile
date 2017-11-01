@@ -21,4 +21,15 @@ Vagrant.configure("2") do |config|
     end
   end
 
+  # ldap client
+  config.vm.define "client" do |client|
+    client.vm.hostname = "client"
+    client.vm.network "private_network", ip: "192.168.34.11"
+
+    client.vm.provider "virtual box" do |vb|
+      vb.memory = 1024
+      vb.cpus = 1
+    end
+  end
+
 end
