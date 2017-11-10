@@ -4,5 +4,6 @@
   vars:
     - ldap_server_ip: '192.168.34.10'
     - organization_name: strata
+    - domain_name: 'strata.com'
   roles:
-    - ldap_client
+    - sssd

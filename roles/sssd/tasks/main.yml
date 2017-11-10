@@ -1,0 +1,22 @@
+---
+- name: Install sssd
+  apt:
+    name: '{{ item }}'
+  with_items:
+    - sssd
+    - libpam-sss
+    - libnss-sss
+    - sssd-tools
+
+- name: Add sssd.conf file
+  template:
+    src: sssd.conf.j2
+    dest: /etc/sssd/sssd.conf
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Start sssd service
+  service:
+    name: sssd
+    state: started
