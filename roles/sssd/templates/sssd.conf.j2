@@ -16,10 +16,8 @@ filter_groups = root
 # {{ organization_name|title }} LDAP domain
 [domain/{{ organization_name }}]
 id_provider = ldap
-auth_provider = krb5
-
-krb5_server = kdc.{{ domain_name }}
-krb5_realm = {{ domain_name }}
+auth_provider = ldap
+chpass_provider = ldap
 
 # ldap_schema can be set to "rfc2307", which stores group member names in the
 # "memberuid" attribute, or to "rfc2307bis", which stores group member DNs in
@@ -29,12 +27,10 @@ krb5_realm = {{ domain_name }}
 ldap_uri = ldap://ldap.{{ domain_name }}
 ldap_search_base = dc={{ organization_name }},dc=com
 
-chpass_provider = krb5
-
 # Note that enabling enumeration will have a moderate performance impact.
 # Consequently, the default value for enumeration is FALSE.
 # Refer to the sssd.conf man page for full details.
-; enumerate = false
+enumerate = true
 # Allow offline logins by locally storing password hashes (default: false).
 cache_credentials = true
 
