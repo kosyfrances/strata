@@ -6,7 +6,8 @@
     - domain_name: 'strata.com'
     - organization_name: strata
     - htpasswd_user: ubuntu
-    - htpasswd_pass: ubuntu # For testing purposes only. Pls encrypt later on
+    - htpasswd_pass: ubuntu # For testing purposes only. Pls encrypt later on !!!
+    - ldap_pass: ubuntu # For testing purposes only. Pls encrypt later on !!!
     - phpldapadmin_url: /ldap
   roles:
     - apache

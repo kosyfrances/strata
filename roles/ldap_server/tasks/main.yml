@@ -18,3 +18,27 @@
   copy:
     src: config.php
     dest: /etc/phpldapadmin/config.php
+
+- name: Install python-ldap dependencies
+  apt:
+    name: '{{ item }}'
+  with_items:
+    - libsasl2-dev
+    - python-dev
+    - libldap2-dev
+    - libssl-dev
+
+- name: Install python-ldap for ldap_attr module
+  pip:
+    name: python-ldap
+
+- name: Configure olcDatabase={1}mdb for {{ domain_name }}
+  ldap_attr:
+    dn: olcDatabase={1}mdb,cn=config
+    name: '{{ item.name }}'
+    values: '{{ item.value }}'
+    state: exact
+  with_items:
+    - { name: olcSuffix, value: 'dc={{ organization_name }},dc=com' }
+    - { name: olcRootDN, value: 'cn=admin,dc={{ organization_name }},dc=com' }
+    - { name: olcRootPW, value: '{{ ldap_pass }}' }
