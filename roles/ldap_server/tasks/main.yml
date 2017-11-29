@@ -10,15 +10,6 @@
 - name: Open up the LDAP port on firewall so external clients can connect
   command: ufw allow ldap
 
-- name: Install phpldapadmin
-  apt:
-    name: phpldapadmin
-
-- name: Configure phpldapadmin
-  copy:
-    src: config.php
-    dest: /etc/phpldapadmin/config.php
-
 - name: Install python-ldap dependencies
   apt:
     name: '{{ item }}'
@@ -42,3 +33,24 @@
     - { name: olcSuffix, value: 'dc={{ organization_name }},dc=com' }
     - { name: olcRootDN, value: 'cn=admin,dc={{ organization_name }},dc=com' }
     - { name: olcRootPW, value: '{{ ldap_pass }}' }
+
+- name: Set up the ACL
+  ldap_attr:
+    dn: olcDatabase={1}mdb,cn=config
+    name: olcAccess
+    values:
+      - >-
+        {1}to *
+        by self write
+        by dn="cn=admin,dc={{ organization_name }},dc=com" write
+        by * read
+    state: exact
+
+- name: Install phpldapadmin
+  apt:
+    name: phpldapadmin
+
+- name: Configure phpldapadmin
+  copy:
+    src: config.php
+    dest: /etc/phpldapadmin/config.php
