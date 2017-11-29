@@ -26,6 +26,8 @@ chpass_provider = ldap
 ; ldap_schema = rfc2307
 ldap_uri = ldap://ldap.{{ domain_name }}
 ldap_search_base = dc={{ organization_name }},dc=com
+ldap_user_search_base = ou=users,dc={{ organization_name }},dc=com
+ldap_group_search_base = ou=groups,dc={{ organization_name }},dc=com
 
 # Note that enabling enumeration will have a moderate performance impact.
 # Consequently, the default value for enumeration is FALSE.

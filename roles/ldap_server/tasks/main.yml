@@ -41,8 +41,9 @@
     values:
       - >-
         {1}to *
+        by dn.exact=gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth manage
+        by dn="cn=admin,dc={{ organization_name }},dc=com" manage
         by self write
-        by dn="cn=admin,dc={{ organization_name }},dc=com" write
         by * read
     state: exact
 
@@ -54,3 +55,8 @@
   copy:
     src: config.php
     dest: /etc/phpldapadmin/config.php
+
+- name: Create top-level object
+  ldap_entry:
+    dn: dc={{ organization_name }},dc=com
+    objectClass: domain
