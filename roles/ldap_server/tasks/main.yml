@@ -60,3 +60,13 @@
   ldap_entry:
     dn: dc={{ organization_name }},dc=com
     objectClass: domain
+
+- name: Make sure we have a parent entry for users
+  ldap_entry:
+    dn: ou=users,dc={{ organization_name }},dc=com
+    objectClass: organizationalUnit
+
+- name: Make sure we have a parent entry for groups
+  ldap_entry:
+    dn: ou=groups,dc={{ organization_name }},dc=com
+    objectClass: organizationalUnit
