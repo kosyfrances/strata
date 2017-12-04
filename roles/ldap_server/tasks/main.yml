@@ -70,3 +70,19 @@
   ldap_entry:
     dn: ou=groups,dc={{ organization_name }},dc=com
     objectClass: organizationalUnit
+
+# Add user to be able to test client login with
+- name: Add user
+  ldap_entry:
+    dn: uid=jdoe,ou=users,dc={{ organization_name }},dc=com
+    objectClass:
+      - organizationalPerson
+      - posixAccount
+    attributes:
+      cn: john
+      sn: doe
+      uidNumber: 1001
+      gidNumber: 1001
+      homeDirectory: /home/jdoe
+      userPassword: "{{ ldap_pass }}"
+      loginShell: /bin/bash
