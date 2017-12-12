@@ -1,4 +1,5 @@
 ---
+# Set up ssl to secure apache and phpldapadmin
 - name: Install requirements
   pip:
     name: '{{ item }}'
@@ -10,27 +11,27 @@
   file:
     path: /etc/apache2/ssl
     state: directory
-  register: ssl_directory
+  register: apache_ssl_directory
 
 - name: Generate ssl private key
   openssl_privatekey:
-    path: '{{ ssl_directory.path }}/apache.pem'
-  register: ssl_key
+    path: '{{ apache_ssl_directory.path }}/apache.pem'
+  register: apache_ssl_key
 
 - name: Generate ssl Certificate Signing Request (CSR)
   openssl_csr:
-    path: '{{ ssl_directory.path }}/apache.csr'
-    privatekey_path: '{{ ssl_key.filename }}'
+    path: '{{ apache_ssl_directory.path }}/apache.csr'
+    privatekey_path: '{{ apache_ssl_key.filename }}'
     common_name: '{{ domain_name }}'
-  register: ssl_csr
+  register: apache_ssl_csr
 
 - name: Generate ssl certificate
   openssl_certificate:
-    path: '{{ ssl_directory.path }}/apache.crt'
-    privatekey_path: '{{ ssl_key.filename }}'
-    csr_path: '{{ ssl_csr.filename }}'
+    path: '{{ apache_ssl_directory.path }}/apache.crt'
+    privatekey_path: '{{ apache_ssl_key.filename }}'
+    csr_path: '{{ apache_ssl_csr.filename }}'
     provider: selfsigned
-  register: ssl_cert
+  register: apache_ssl_cert
 
 - name: Create password auth file to password protect our phpLDAPadmin location
   htpasswd:
@@ -61,3 +62,107 @@
 - name: Enable the HTTPS Virtual Host File
   command: a2ensite default-ssl.conf
   notify: restart apache2
+
+### Setup to encrypt openldap connections
+- name: Set the hostname in all of the relevant places on your server
+  hostname:
+    name: '{{ hostname }}'
+
+- name: Ensure /etc/hosts has the FQDN of our server
+  lineinfile:
+    path: /etc/hosts
+    line: '127.0.1.1 {{ hostname }}.{{ domain_name }} {{ hostname }}'
+
+- name: Install packages to encrypt our connection
+  apt:
+    name: '{{ item }}'
+    update_cache: yes
+  with_items:
+    - gnutls-bin
+    - ssl-cert
+
+- name: Make directory to store template files
+  file:
+    path: /etc/ssl/templates
+    state: directory
+  register: ldap_ssl_directory
+
+- name: Set fact for templates directory
+  set_fact:
+    ssl_template_dir: '{{ ldap_ssl_directory.path }}'
+
+- name: Create the template for certificate authority
+  blockinfile:
+    path: '{{ ssl_template_dir }}/ca_server.conf'
+    create: yes
+    block: |
+      cn = LDAP Server CA
+      ca
+      cert_signing_key
+
+- name: Create the LDAP service template
+  blockinfile:
+    path: '{{ ssl_template_dir }}/ldap_server.conf'
+    create: yes
+    block: |
+      organization = "{{ organization_name | title }}"
+      cn = ldap.{{ domain_name }}
+      tls_www_server
+      encryption_key
+      signing_key
+      expiration_days = 3652
+
+- name: Set facts for ssl directories
+  set_fact:
+    ssl_private_dir: /etc/ssl/private
+    ssl_certs_dir: /etc/ssl/certs
+
+- name: Generate CA key
+  command: certtool -p --outfile {{ ssl_private_dir }}/ca_server.key
+
+- name: Generate CA certificate
+  command: certtool -s --load-privkey {{ ssl_private_dir }}/ca_server.key \
+          --template {{ ssl_template_dir }}/ca_server.conf \
+          --outfile {{ ssl_certs_dir }}/ca_server.pem
+
+- name: Generate private key for LDAP server
+  command: certtool -p --sec-param high --outfile {{ ssl_private_dir }}/ldap_server.key
+
+- name: Put the certificate in /etc/ssl/certs
+  command: certtool -c --load-privkey {{ ssl_private_dir }}/ldap_server.key \
+          --load-ca-certificate {{ ssl_certs_dir }}/ca_server.pem \
+          --load-ca-privkey {{ ssl_private_dir }}/ca_server.key \
+          --template {{ ssl_template_dir }}/ldap_server.conf \
+          --outfile {{ ssl_certs_dir }}/ldap_server.pem
+
+- name: Add openldap user to ssl-cert group
+  user:
+    name: openldap
+    group: ssl-cert
+
+- name: Give ssl-cert group ownership over ldap_server.key file
+  file:
+    path: '{{ ssl_private_dir }}/ldap_server.key'
+    group: ssl-cert
+    mode: 640
+
+- name: Configure OpenLDAP to use olcTLSCACertificateFile and key
+  ldap_attr:
+    dn: 'cn=config'
+    name: olcTLSCACertificateFile
+    values: '{{ ssl_certs_dir }}/ca_server.pem'
+    state: exact
+
+- name: Configure OpenLDAP to use olcTLSCertificateFile and key
+  ldap_attr:
+    dn: 'cn=config'
+    name: olcTLSCertificateFile
+    values: '{{ ssl_certs_dir }}/ldap_server.pem'
+    state: exact
+
+- name: Configure OpenLDAP to use olcTLSCertificateKeyFile and key
+  ldap_attr:
+    dn: 'cn=config'
+    name: olcTLSCertificateKeyFile
+    values: '{{ ssl_private_dir }}/ldap_server.key'
+    state: exact

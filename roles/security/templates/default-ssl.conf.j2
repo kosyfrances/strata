@@ -30,8 +30,8 @@
         #   /usr/share/doc/apache2/README.Debian.gz for more info.
         #   If both key and certificate are stored in the same file, only the
         #   SSLCertificateFile directive is needed.
-        SSLCertificateFile  {{ ssl_cert.filename }}
-        SSLCertificateKeyFile {{ ssl_key.filename }}
+        SSLCertificateFile  {{ apache_ssl_cert.filename }}
+        SSLCertificateKeyFile {{ apache_ssl_key.filename }}
 
         #   Server Certificate Chain:
         #   Point SSLCertificateChainFile at a file containing the
