@@ -9,6 +9,7 @@
     - htpasswd_pass: ubuntu # For testing purposes only. Pls encrypt later on !!!
     - ldap_pass: ubuntu # For testing purposes only. Pls encrypt later on !!!
     - phpldapadmin_url: /ldap
+    - hostname: ldap
   roles:
     - apache
     - php
