@@ -1,0 +1,10 @@
+dn: cn=config
+changetype: modify
+add: olcTLSCACertificateFile
+olcTLSCACertificateFile: {{ ssl_certs_dir }}/ca_server.pem
+-
+add: olcTLSCertificateFile
+olcTLSCertificateFile: {{ ssl_certs_dir }}/ldap_server.pem
+-
+add: olcTLSCertificateKeyFile
+olcTLSCertificateKeyFile: {{ ssl_private_dir }}/ldap_server.key
