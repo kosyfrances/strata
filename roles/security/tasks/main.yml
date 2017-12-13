@@ -146,23 +146,18 @@
     group: ssl-cert
     mode: 640
 
-- name: Configure OpenLDAP to use olcTLSCACertificateFile and key
-  ldap_attr:
-    dn: 'cn=config'
-    name: olcTLSCACertificateFile
-    values: '{{ ssl_certs_dir }}/ca_server.pem'
-    state: exact
+- name: Configure OpenLDAP to use the certificate and keys
+  template:
+    src: addcerts.ldif.j2
+    dest: '{{ ansible_env.HOME }}/addcerts.ldif'
+  register: addcerts
 
-- name: Configure OpenLDAP to use olcTLSCertificateFile and key
-  ldap_attr:
-    dn: 'cn=config'
-    name: olcTLSCertificateFile
-    values: '{{ ssl_certs_dir }}/ldap_server.pem'
-    state: exact
+- debug: msg={{ addcerts }}
 
-- name: Configure OpenLDAP to use olcTLSCertificateKeyFile and key
-  ldap_attr:
-    dn: 'cn=config'
-    name: olcTLSCertificateKeyFile
-    values: '{{ ssl_private_dir }}/ldap_server.key'
-    state: exact
+- name: Apply the changes to OpenLDAP system
+  command: ldapmodify -H ldapi:// -Y EXTERNAL -f {{ addcerts.path|default(addcerts.dest) }}
+
+- name: Reload OpenLDAP to apply the changes
+  service:
+    name: slapd
+    state: reloaded
