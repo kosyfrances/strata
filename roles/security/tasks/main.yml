@@ -139,6 +139,7 @@
   user:
     name: openldap
     group: ssl-cert
+  notify: restart openldap
 
 - name: Give ssl-cert group ownership over ldap_server.key file
   file:
@@ -152,12 +153,20 @@
     dest: '{{ ansible_env.HOME }}/addcerts.ldif'
   register: addcerts
 
-- debug: msg={{ addcerts }}
-
+####  It breaks at this point. ***** ****
 - name: Apply the changes to OpenLDAP system
-  command: ldapmodify -H ldapi:// -Y EXTERNAL -f {{ addcerts.path|default(addcerts.dest) }}
+  command: ldapmodify -H ldapi:/// -Y EXTERNAL -f {{ addcerts.path|default(addcerts.dest) }}
+  notify: restart openldap
 
-- name: Reload OpenLDAP to apply the changes
-  service:
-    name: slapd
-    state: reloaded
+- name: Copy the CA certificate
+  copy:
+    src: '{{ ssl_certs_dir }}/ca_server.pem'
+    dest: /etc/ldap/ca_certs.pem
+    remote_src: yes
+  register: ldap_ca_cert
+
+- name: Adjust the value of TLS_CACERT option to point to the new CA certificate
+  lineinfile:
+    path: '{{ /etc/ldap/ldap.conf }}'
+    regexp: '^TLS_CACERT'
+    line: TLS_CACERT {{ ldap_ca_cert }}
